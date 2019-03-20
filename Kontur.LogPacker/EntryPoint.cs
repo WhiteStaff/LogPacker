@@ -47,39 +47,40 @@ namespace Kontur.LogPacker
 
             DateTime dateTime = new DateTime();
             System.IO.StreamReader file = new System.IO.StreamReader(inputFile);
-            while ((line = file.ReadLine()) != null)
-            {
-                string newline = "";
-                if (Helper.IsLineCorrect(line))
+            using (StreamWriter sw = new StreamWriter(@"C:\Users\224801\Desktop\test12.txt", true, System.Text.Encoding.UTF8))
+                while ((line = file.ReadLine()) != null)
                 {
-                    if (counter != 0)
+                    string newline = "";
+                    if (Helper.IsLineCorrect(line))
                     {
-                        newline = Helper.DateDifference(DateTime.ParseExact(Helper.PartOfString(line, 0, 23), "yyyy-MM-dd HH:mm:ss,fff", null), dateTime) + line.Remove(0, 23);
+                        if (counter != 0)
+                        {
+                            newline = Helper.DateDifference(DateTime.ParseExact(Helper.PartOfString(line, 0, 23), "yyyy-MM-dd HH:mm:ss,fff", null), dateTime) + line.Remove(0, 23);
+                        }
+                        else
+                        {
+                            newline = line;
+                        }
+
+                        dateTime = DateTime.ParseExact(Helper.PartOfString(line, 0, 23), "yyyy-MM-dd HH:mm:ss,fff", null);
+                        counter++;
                     }
                     else
                     {
-                        newline = line;
+                        newline = '!'+line;
                     }
+                    
 
-                    dateTime = DateTime.ParseExact(Helper.PartOfString(line, 0, 23), "yyyy-MM-dd HH:mm:ss,fff", null);
 
-                }
-                else
-                {
-                    newline = line;
-                }
-                counter++;
-                using (StreamWriter sw = new StreamWriter(outputFile, true, System.Text.Encoding.UTF8))
-                {
                     sw.WriteLine(newline);
+
                 }
-            }
 
             file.Close();
 
 
-            using (var inputStream = File.OpenRead(outputFile))
-            using (var outputStream = File.OpenWrite(@"C:\Users\224801\Desktop\123t.txt"))
+           using (var inputStream = File.OpenRead(@"C:\Users\224801\Desktop\test12.txt"))
+            using (var outputStream = File.OpenWrite(outputFile))
                 new Compressor().Compress(inputStream, outputStream);
             //File.WriteAllBytes(outputFile, File.ReadAllBytes(inputFile));
         }
@@ -87,8 +88,61 @@ namespace Kontur.LogPacker
         private static void Decompress(string inputFile, string outputFile)
         {
             using (var inputStream = File.OpenRead(inputFile))
-            using (var outputStream = File.OpenWrite(outputFile))
+            using (var outputStream = File.OpenWrite(@"C:\Users\224801\Desktop\kuda.txt"))
                 new Compressor().Decompress(inputStream, outputStream);
+
+           int counter = 0;
+            string line, newline = "";
+            DateTime dateTime = new DateTime();
+
+            System.IO.StreamReader file = new System.IO.StreamReader(@"C:\Users\224801\Desktop\kuda.txt");
+            using (StreamWriter sw = new StreamWriter(outputFile, true, System.Text.Encoding.UTF8))
+                while ((line = file.ReadLine()) != null)
+                {
+                    
+                    if (line[0] != '!')
+                    {
+                        if (counter == 0)
+                        {
+                            dateTime = DateTime.ParseExact(Helper.PartOfString(line, 0, 23), "yyyy-MM-dd HH:mm:ss,fff", null);
+                            newline = line;
+                        }
+                        else
+                        {
+                            
+                            newline = Helper.DateAsString(line, dateTime, out int pos, out dateTime) + line.Remove(0, pos-1);
+
+                        }
+                        counter++;
+                    }
+                    else
+                    {
+                        newline = line.Remove(0, 1);
+                    }
+
+                    sw.WriteLine(newline);
+                }
+            file.Close();
+            
+
+            System.IO.StreamReader file2 = new System.IO.StreamReader(@"C:\Users\224801\Desktop\dec.txt");
+            System.IO.StreamReader file3 = new System.IO.StreamReader(@"C:\Users\224801\Desktop\000.txt");
+            int c = 0;
+            while ((line = file2.ReadLine()) != null)
+            {
+                string line2 = file3.ReadLine();
+                
+                if (line.Equals(line2))
+                {
+                    c++;
+                }
+                else
+                {
+                    Console.WriteLine(c);
+                    c++;
+                }
+            }
+
         }
     }
 }

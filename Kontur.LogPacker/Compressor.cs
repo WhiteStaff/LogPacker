@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using System.IO.Compression;
 
-namespace Kontur.LogPackerGZip
+namespace Kontur.LogPacker
 {
-    internal class GZipCompressor
+    internal class Compressor
     {
         public void Compress(Stream inputStream, Stream outputStream)
         {

@@ -43,5 +43,45 @@ namespace Kontur.LogPacker
             string result = days + " " + min + " " + ms;
             return result;
         }
+        public static string DateAsString(string line, DateTime dateTime, out int position, out DateTime dateTime1)
+        {
+            int counter = 0;
+            int i = 0;
+            string day = "", min = "", ms = "";
+            while (counter < 3)
+            {
+                if ((counter == 0) && (line[i] != ' ' ))
+                {
+                    day += line[i];
+                    i++;
+                }
+                else if ((counter == 1) && (line[i] != ' '))
+                {
+                    min += line[i];
+                    i++;
+                }
+                else if ((counter == 2) && (line[i] != ' '))
+                {
+                    ms += line[i];
+                    i++;
+                }
+                else if (line[i] == ' ')
+                {
+                    counter++;
+                    i++;
+                }
+                        
+            }
+            int.Parse(day);
+            int.Parse(min);
+            int.Parse(ms);
+            position = i;
+            DateTime curr = new DateTime();
+            
+            TimeSpan timeSpan = new TimeSpan(int.Parse(day), int.Parse(min) / 60, int.Parse(min) - (int.Parse(min) / 60) * 60, int.Parse(ms)/1000, int.Parse(ms) - (int.Parse(ms) / 1000) * 1000);
+            curr = dateTime.Add(timeSpan);
+            dateTime1 = curr;
+            return curr.ToString("yyyy-MM-dd HH:mm:ss,fff");
+        }
     }
 }
