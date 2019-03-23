@@ -83,5 +83,67 @@ namespace Kontur.LogPacker
             dateTime1 = curr;
             return curr.ToString("yyyy-MM-dd HH:mm:ss,fff");
         }
+
+        public static byte[] CreateOptimalByteLine(List<byte> byteList, DateTime dateTime, out DateTime dateTime1)
+        {
+            string newline;
+            
+            string line = System.Text.Encoding.UTF8.GetString(byteList.ToArray());
+            if (Helper.IsLineCorrect(line))
+            {
+                if (dateTime != null)
+                {
+                    newline = Helper.DateDifference(DateTime.ParseExact(Helper.PartOfString(line, 0, 23), "yyyy-MM-dd HH:mm:ss,fff", null), dateTime) + line.Remove(0, 23);
+                }
+                else
+                {
+                    newline = line;
+                }
+
+                dateTime1 = DateTime.ParseExact(Helper.PartOfString(line, 0, 23), "yyyy-MM-dd HH:mm:ss,fff", null);
+                
+            }
+            else
+            {
+                newline = '!' + line;
+                dateTime1 = dateTime;
+            }
+
+
+
+            return Encoding.UTF8.GetBytes(newline);
+
+        }
+
+        public static byte[] ReturnOriginalLine(List<byte> byteList, DateTime dateTime, out DateTime dateTime1)
+        {
+            string newline;
+            string line = System.Text.Encoding.UTF8.GetString(byteList.ToArray());
+            if (IsLineCorrect(line))
+            {
+                if (dateTime != null)
+                {
+                    dateTime = DateTime.ParseExact(Helper.PartOfString(line, 0, 23), "yyyy-MM-dd HH:mm:ss,fff", null);
+                    newline = line;
+                }
+                else
+                {
+                    newline = Helper.DateAsString(line, dateTime, out int pos, out dateTime) + line.Remove(0, pos - 1);
+                }
+
+                dateTime1 = DateTime.ParseExact(Helper.PartOfString(line, 0, 23), "yyyy-MM-dd HH:mm:ss,fff", null);
+
+            }
+            else
+            {
+                newline = '!' + line;
+                dateTime1 = dateTime;
+            }
+
+
+
+            return Encoding.UTF8.GetBytes(newline);
+
+        }
     }
 }
