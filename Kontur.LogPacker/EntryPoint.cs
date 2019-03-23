@@ -55,6 +55,7 @@ namespace Kontur.LogPacker
             using (var inputStream = File.OpenRead(inputFile))
             using (var outputStream = File.OpenWrite(helpFile))
                 new Compressor().Decompress(inputStream, outputStream);
+            MyCompressor.ReturnOriginalLog(outputFile);
 
            
 

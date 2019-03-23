@@ -13,6 +13,7 @@ namespace Kontur.LogPacker
             List<byte> byteline = new List<byte>();
             byte[] bytesForWriting;
             DateTime dateTime = new DateTime();
+            
             using (FileStream readFile = new FileStream(inputFile, FileMode.Open) )
             using (FileStream writeFile = new FileStream(Path.GetFullPath("123.txt"), FileMode.OpenOrCreate))
                 while ((bytes = readFile.ReadByte()) != -1)
@@ -54,33 +55,49 @@ namespace Kontur.LogPacker
 
                     if (byteline.Count == 0 && bytes != 33)
                     {
-                        while ((bytes = readFile.ReadByte()) != 10 && (bytes = readFile.ReadByte()) != 13)
+                        byteline.Add((byte)bytes);
+                        bytes = readFile.ReadByte();
+                        while ((bytes) != 10 && (bytes) != 13)
                         {
+                            if (bytes == -1) { break; }
                             byteline.Add((byte)bytes);
+                            bytes = readFile.ReadByte();
+                        }                        
+                        bytesForWriting = Helper.ReturnOriginalCorrectLine(byteline, dateTime, out dateTime);
+                        for (int i = 0; i < bytesForWriting.Length; i++)
+                        {
+                            writeFile.WriteByte(bytesForWriting[i]);
                         }
-                        //парс строки лога
+                        if (bytes == 13)
+                        {
+                            writeFile.WriteByte(13);
+                            readFile.ReadByte();
+                        }
+                        writeFile.WriteByte(10);
                         byteline.Clear();
-                        if (counter == 0)
-                        {
-                            dateTime = DateTime.ParseExact(Helper.PartOfString(line, 0, 23), "yyyy-MM-dd HH:mm:ss,fff", null);
-                            newline = line;
-                        }
-                        else
-                        {
-
-                            newline = Helper.DateAsString(line, dateTime, out int pos, out dateTime) + line.Remove(0, pos - 1);
-
-                        }
-                        
                     }
                     else
                     {
-                        while ((bytes = readFile.ReadByte()) != 10 && (bytes = readFile.ReadByte()) != 13)
+                        bytes = readFile.ReadByte();
+                        while ((bytes) != 10 && (bytes) != 13)
                         {
+                            if (bytes == -1) { break; }
                             byteline.Add((byte)bytes);
+                            bytes = readFile.ReadByte();
                         }
-                        //парс некорректной строки
+                        bytesForWriting = byteline.ToArray();
+                        for (int i = 0; i < bytesForWriting.Length; i++)
+                        {
+                            writeFile.WriteByte(bytesForWriting[i]);
+                        }
+                        if (bytes == 13)
+                        {
+                            writeFile.WriteByte(13);
+                            readFile.ReadByte();
+                        }
+                        writeFile.WriteByte(10);
                         byteline.Clear();
+                        
                         
                     }                   
                 }            
