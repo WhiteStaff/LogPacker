@@ -13,13 +13,15 @@ namespace Kontur.LogPacker
             List<byte> byteline = new List<byte>();
             byte[] bytesForWriting;
             DateTime dateTime = new DateTime();
-            
+            Boolean isLineVeryBad;
             using (FileStream readFile = new FileStream(inputFile, FileMode.Open) )
-            using (FileStream writeFile = new FileStream(Path.GetFullPath("123.txt"), FileMode.OpenOrCreate))
+            using (FileStream writeFile = new FileStream(@"C:\Users\224801\Desktop\41.txt", FileMode.Create))
                 while ((bytes = readFile.ReadByte()) != -1)
                 {
+                    
                     if ((byte)bytes == 10 || (byte)bytes == 13)
                     {
+                        isLineVeryBad = true;
                         bytesForWriting = Helper.CreateOptimalByteLine(byteline, dateTime, out dateTime);
                         for (int i = 0; i < bytesForWriting.Length; i++)
                         {
@@ -28,17 +30,29 @@ namespace Kontur.LogPacker
                         if (bytes == 13)
                         {
                             writeFile.WriteByte(13);
-                            readFile.ReadByte();
+                            bytes = readFile.ReadByte();
                         }
-                        writeFile.WriteByte(10);
-                        byteline.Clear();
+                        if (bytes == 10)
+                        {
+                            writeFile.WriteByte(10);
+                            byteline.Clear();
+                            isLineVeryBad = false;
+                        }
+                        else
+                        {
+                            writeFile.WriteByte((byte)bytes);
+                        }
+                        if (isLineVeryBad)
+                        {
+                            byteline.Clear();
+                        }
                     }
                     else
                     {
                         byteline.Add((byte)bytes);
                     }
                 }
-            inputFile = Path.GetFullPath("123.txt");
+            inputFile = @"C:\Users\224801\Desktop\41.txt";
             return inputFile;
         }
 
@@ -84,6 +98,7 @@ namespace Kontur.LogPacker
                             if (bytes == -1) { break; }
                             byteline.Add((byte)bytes);
                             bytes = readFile.ReadByte();
+                            
                         }
                         bytesForWriting = byteline.ToArray();
                         for (int i = 0; i < bytesForWriting.Length; i++)
@@ -93,15 +108,30 @@ namespace Kontur.LogPacker
                         if (bytes == 13)
                         {
                             writeFile.WriteByte(13);
-                            readFile.ReadByte();
+                            while ((bytes = readFile.ReadByte()) == 13)  //для картинок и других жутких наборов байт
+                            {
+                                writeFile.WriteByte(13);                                
+                            }                            
+                            if (bytes == 33)
+                            {
+                                readFile.Position--;
+                               
+                                byteline.Clear();
+                            }
                         }
-                        writeFile.WriteByte(10);
-                        byteline.Clear();
+                        else
+                        if (bytes == 10)
+                        {
+                            writeFile.WriteByte(10);
+                            byteline.Clear();
+                        }
+                        
+                        
                         
                         
                     }                   
                 }            
-            File.Delete(Path.GetFullPath("123.txt"));
+           File.Delete(Path.GetFullPath("123.txt"));
         }
 
     }

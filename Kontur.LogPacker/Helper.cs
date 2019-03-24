@@ -105,8 +105,9 @@ namespace Kontur.LogPacker
             }
             else
             {
-                newline = '!' + line;
+                byteList.Insert(0, 33);
                 dateTime1 = dateTime;
+                return byteList.ToArray();
             }
 
 
