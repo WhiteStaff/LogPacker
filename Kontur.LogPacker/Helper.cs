@@ -5,12 +5,15 @@ using System.Text.RegularExpressions;
 
 namespace Kontur.LogPacker
 {
+    //TODO:7 лучше не терять модификаторы досутпа
     static class Helper
     {
         public static bool IsLineCorrect(string line)
         {
             string pattern = @"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3} \d{1}[\d| ][\d| ][\d| ][\d| ][\d| ]";
+            //TODO:10 неочевидная и недокументированная логика. Не могу даже пресдавить зачем это строчка.
             if (line.Length < 33) return false;
+            //TODO:11 можно возвращать результат метода, а не делать по нему if
             if (Regex.IsMatch(line, pattern, RegexOptions.IgnoreCase))
             {
                 return true;
@@ -18,11 +21,15 @@ namespace Kontur.LogPacker
             return false;
         }
 
+        //TODO:12 startindex
+        //TODO:21 Это похоже на велосипед. Подумай как не делать это руками
         public static string PartOfString(string source, int startindex, int count)
         {
+            //TODO:18 Скорее всего, тут нужно бросать exception, а не левую строку возвращать
             if (source.Length < startindex + count - 1) { return "Error"; }
             else
             {
+                //TODO:19 Очень плохое решение потому что неэффективно работаешь со 1)стороками 2)коллекциями
                 string result = "";
                 for (int i = startindex; i < startindex + count; i++)
                 {
@@ -33,18 +40,22 @@ namespace Kontur.LogPacker
 
         }
 
+        //TODO:13 Лучше не использовать цифры в названиях переменных
         public static string DateDifference(DateTime dateTime1, DateTime dateTime2)
         {
+            //TODO:15 это весь метод - один большой велосипед. Читай про TimeSpan и DateTime. Пока ты не поймешь, что этот метод нужно удалить - продолжай читать
             TimeSpan diff = dateTime1 - dateTime2;
+            //TODO:14 можно было написать сразу int days = value... и т.д.
             int days, min, ms;
             days = (int)Math.Floor(diff.TotalDays);
             min = diff.Hours * 24 + diff.Minutes;
             ms = diff.Seconds * 1000 + diff.Milliseconds;
             string result = days + " " + min + " " + ms;
             return result;
-        }
+        }//TODO:16 между методами стоит делать отсутпы
         public static string DateAsString(string line, DateTime dateTime, out int position, out DateTime dateTime1)
         {
+            //TODO:17 Еще один большой костыль. Смотреть todo-15
             int counter = 0;
             int i = 0;
             string day = "", min = "", ms = "";
@@ -120,6 +131,7 @@ namespace Kontur.LogPacker
         {
             string newline;
             string line = System.Text.Encoding.UTF8.GetString(byteList.ToArray());            
+            //TODO:20 Табуляция очень сильно поехала. Опять
                 if (dateTime.Year != 1)
                 {
                     newline = Helper.DateAsString(line, dateTime, out int pos, out dateTime) + line.Remove(0, pos - 1);

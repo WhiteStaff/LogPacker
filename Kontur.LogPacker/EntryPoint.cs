@@ -7,8 +7,10 @@ namespace Kontur.LogPacker
     {
         public static void Main(string[] args)
         {
+            //TODO:8 нет обработки в случае иного кол-ва аргументов
             if (args.Length == 2)
             {
+                //TODO:9 var - не всегда понятно. Используй когда очевиден тип справа
                 var (inputFile, outputFile) = (args[0], args[1]);
 
                 if (File.Exists(inputFile))
@@ -16,6 +18,8 @@ namespace Kontur.LogPacker
                     Compress(inputFile, outputFile);
                     return;
                 }
+                //TODO:1 else?
+                //У тебя нет никаких проверок на устойчивость программы. Нужно рассматривать кейсы, когда у тебя нет файл, или нет доступа к нему
             }
 
             if (args.Length == 3 && args[0] == "-d")
@@ -27,6 +31,7 @@ namespace Kontur.LogPacker
                     Decompress(inputFile, outputFile);
                     return;
                 }
+                //TODO: same as 1
             }
 
             ShowUsage();
@@ -42,10 +47,13 @@ namespace Kontur.LogPacker
 
         private static void Compress(string inputFile, string outputFile)
         {
+            //TODO:3 поехала табуляция. Очень сильно
            inputFile = MyCompressor.CreateHelpFile(inputFile);
            using (var inputStream = File.OpenRead(inputFile))
             using (var outputStream = File.OpenWrite(outputFile))
+                //TODO:2 new compressor -  не очень хорошо. Если у объекта нет лайфлайна, то можно просто делать статик методы
                 new Compressor().Compress(inputStream, outputStream);
+           //TODO:4 А почему он удаляется? Это не совсем адекватное поведение для архиватора, когда ты исходник удаляешь
             File.Delete(inputFile);            
         }
 
@@ -55,10 +63,11 @@ namespace Kontur.LogPacker
             using (var inputStream = File.OpenRead(inputFile))
             using (var outputStream = File.OpenWrite(helpFile))
                 new Compressor().Decompress(inputStream, outputStream);
+            //TODO:5 Метод Return ничего не возвращает. Интересно.
             MyCompressor.ReturnOriginalLog(outputFile);
 
            
-
+            //TODO:6 не стоит оставлять закоменченный код. Если это какой-то дебаг, то лучше вынеси его в отдельный класс/метод.
            /* System.IO.StreamReader file2 = new System.IO.StreamReader(@"C:\Users\224801\Desktop\dec.txt");
             System.IO.StreamReader file3 = new System.IO.StreamReader(@"C:\Users\224801\Desktop\000.txt");
             int c = 0;

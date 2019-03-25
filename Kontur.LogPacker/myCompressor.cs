@@ -12,8 +12,9 @@ namespace Kontur.LogPacker
             int bytes;
             List<byte> byteline = new List<byte>();
             byte[] bytesForWriting;
-            DateTime dateTime = new DateTime();            
-            using (FileStream readFile = new FileStream(inputFile, FileMode.Open) )
+            DateTime dateTime = new DateTime();
+            using (FileStream readFile = new FileStream(inputFile, FileMode.Open))
+                //TODO:22 "123.txt" -скорее всего должно быть переменной, которая приходит в метод
             using (FileStream writeFile = new FileStream(Path.GetFullPath("123.txt"), FileMode.Create))
                 while ((bytes = readFile.ReadByte()) != -1)
                 {
@@ -50,14 +51,15 @@ namespace Kontur.LogPacker
                     {
                         byteline.Add((byte)bytes);
                     }*/
-
+                    //TODO:23 Вообще не понятно что за 48 и 57. Код нечитаем
                     if ((bytes >= 48) && (bytes <= 57) && (byteline.Count == 0))
-                    {                        
+                    {
                         while ((bytes != 10) && (bytes != -1))
                         {
                             byteline.Add((byte)bytes);
-                            bytes = readFile.ReadByte();                            
+                            bytes = readFile.ReadByte();
                         }
+                        //TODO:24 if == 13 делаем какую-то непонятную логику. Подобные кейсы лучше выносить в отдельные методы и хотябы давать имена понятные.
                         if (byteline[byteline.Count - 1] == 13)
                         {
                             byteline.RemoveAt(byteline.Count - 1);
@@ -69,6 +71,7 @@ namespace Kontur.LogPacker
                             writeFile.WriteByte(bytesForWriting[i]);
                         }
                         if (bytes == 13) { writeFile.WriteByte(13); }
+                        //TODO:25 Этот брейк очень сильно усложняет понимание того, как должен работать этот while (хотя казалось бы, куда усложнять)
                         if (bytes == -1) { break; }
                         writeFile.WriteByte(10);
                         byteline.Clear();
@@ -89,7 +92,7 @@ namespace Kontur.LogPacker
                         }
                         if (bytes == -1) { break; }
                         writeFile.WriteByte(10);
-                        byteline.Clear();                        
+                        byteline.Clear();
                     }
                 }
             inputFile = Path.GetFullPath("123.txt");
@@ -104,9 +107,11 @@ namespace Kontur.LogPacker
             DateTime dateTime = new DateTime();                    
             using (FileStream readFile = new FileStream(Path.GetFullPath("123.txt"), FileMode.Open))
             using (FileStream writeFile = new FileStream(outputFile, FileMode.OpenOrCreate))
+                //TODO:26 я бы советовал разделить, насколько это возможно открытие файлов и этот while от логики внутри
+                //сделать метод, который будет что-то делать там и возвращать true/false - нужно ли вайлу дальше работать
                 while ((bytes = readFile.ReadByte()) != -1)
                 {
-
+                    //TODO:27 есть подозрение, что у тебя дублируется логика в этих двух методах. Попытайся ее обобщить
                     if (byteline.Count == 0 && bytes != 33)
                     {
                         byteline.Add((byte)bytes);
@@ -178,8 +183,9 @@ namespace Kontur.LogPacker
                         if (bytes == -1) { break; }
                         writeFile.WriteByte(10);
                         byteline.Clear();
-                    }                   
+                    }
                 }            
+                //TODO:28 Опять же, удаление в данном контексте - странное решение, а табуляции все также плохо. Самое время почитать про хоткеи студии?
            File.Delete(Path.GetFullPath("123.txt"));
         }
 
