@@ -46,7 +46,7 @@ namespace Kontur.LogPacker
            using (var inputStream = File.OpenRead(inputFile))
             using (var outputStream = File.OpenWrite(outputFile))
                 new Compressor().Compress(inputStream, outputStream);
-            File.Delete(inputFile);            
+            //File.Delete(inputFile);            
         }
 
         private static void Decompress(string inputFile, string outputFile)
@@ -56,27 +56,6 @@ namespace Kontur.LogPacker
             using (var outputStream = File.OpenWrite(helpFile))
                 new Compressor().Decompress(inputStream, outputStream);
             MyCompressor.ReturnOriginalLog(outputFile);
-
-           
-
-           /* System.IO.StreamReader file2 = new System.IO.StreamReader(@"C:\Users\224801\Desktop\dec.txt");
-            System.IO.StreamReader file3 = new System.IO.StreamReader(@"C:\Users\224801\Desktop\000.txt");
-            int c = 0;
-            while ((line = file2.ReadLine()) != null)
-            {
-                string line2 = file3.ReadLine();
-                
-                if (line.Equals(line2))
-                {
-                    c++;
-                }
-                else
-                {
-                    Console.WriteLine(c);
-                    c++;
-                }
-            }*/
-
         }
     }
 }
