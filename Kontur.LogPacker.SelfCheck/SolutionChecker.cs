@@ -66,6 +66,7 @@ namespace Kontur.LogPacker.SelfCheck
                 Console.WriteLine();
             }
 
+            Console.ReadLine();
             return !someTestsFailed;
         }
 
