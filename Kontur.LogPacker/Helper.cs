@@ -121,7 +121,7 @@ namespace Kontur.LogPacker
 
             if (pos < 5)
             {
-                for (int i = pos; i < 6; i++)
+                for (int i = pos; i < 5; i++)
                 {
                     if (line[i] != ' ')
                     {
@@ -138,7 +138,7 @@ namespace Kontur.LogPacker
             {
                 pos++;
             }
-
+            
             //check dictionary
             if (!lvlDict.TryGetValue(newline, out string dictValue))
             {
@@ -384,7 +384,7 @@ namespace Kontur.LogPacker
             logLvl = ReturnLogLvlFromCompact(line, lvlDict, out pos);
             line = line.Remove(0, pos + 1);
             
-            return date + " " + id + " " + logLvl + line;
+            return date + " " + id + " " + logLvl + " " + line;
         }
 
         private static ulong ReadFirstId(string line)

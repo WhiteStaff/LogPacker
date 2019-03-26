@@ -64,10 +64,10 @@ namespace Kontur.LogPacker
                     }
                 }                
                 ulong bytesCount = 0;
-                string pair;
+                string pair = "";                
                 foreach(var curr in logsLvl)
                 {
-                    pair = curr.Key + "`" + curr.Value;
+                    pair = curr.Key + '`' + curr.Value;
                     bytesForWriting = Encoding.UTF8.GetBytes(pair);
                     for (int i = 0; i < bytesForWriting.Length; i++)
                     {
