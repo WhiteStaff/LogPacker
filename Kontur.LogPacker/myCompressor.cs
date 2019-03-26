@@ -14,6 +14,7 @@ namespace Kontur.LogPacker
             byte[] bytesForWriting;
             DateTime dateTime = new DateTime();
             ulong currentId = 0;
+            bool isItFirstDate = true;
             Dictionary<string, string> logsLvl = new Dictionary<string, string>();
             using (FileStream readFile = new FileStream(inputFile, FileMode.Open))
             using (FileStream writeFile = new FileStream(Path.GetFullPath("123.txt"), FileMode.Create))
@@ -33,7 +34,7 @@ namespace Kontur.LogPacker
                             byteline.RemoveAt(byteline.Count - 1);
                             bytes = 13;
                         }
-                        bytesForWriting = Helper.CreateOptimalByteLine(byteline, dateTime, currentId, logsLvl, out dateTime, out currentId);
+                        bytesForWriting = Helper.CreateOptimalByteLine(byteline, dateTime, currentId, logsLvl, isItFirstDate, out dateTime, out currentId, out isItFirstDate);
                         for (int i = 0; i < bytesForWriting.Length; i++)
                         {
                             writeFile.WriteByte(bytesForWriting[i]);
@@ -62,7 +63,7 @@ namespace Kontur.LogPacker
                         byteline.Clear();
                     }
                 }                
-                ulong bytesCount = 2;
+                ulong bytesCount = 0;
                 string pair;
                 foreach(var curr in logsLvl)
                 {
@@ -95,32 +96,40 @@ namespace Kontur.LogPacker
             ulong currentId = 0;
             List<byte> byteline = new List<byte>();
             byte[] bytesForWriting;
+            bool isItFirstDate = true;
             Dictionary<string, string> logsLvl = new Dictionary<string, string>();
             DateTime dateTime = new DateTime();
             using (FileStream readFile = new FileStream(Path.GetFullPath("123.txt"), FileMode.Open))
-            using (FileStream writeFile = new FileStream(outputFile, FileMode.OpenOrCreate))
+            using (FileStream writeFile = new FileStream(outputFile, FileMode.Create))
             {
                 //create dictionary
                 readFile.Position = readFile.Length - 8;
                 
+                //how many bytes is dictionary
                 for (int i = 0; i < 8; i++)
                 {
                     bytes = readFile.ReadByte();
                     byteline.Add((byte)bytes);
                 }
-                bytes = readFile.ReadByte();
+                
                 pos = BitConverter.ToInt64(byteline.ToArray());
-                while ((bytes = readFile.ReadByte()) != 92)
+                byteline.Clear();
+                readFile.Position = readFile.Length - 8 - pos;
+
+                //read dictionary
+                while (readFile.Position < readFile.Length - 8)
                 {
+
+                    bytes = readFile.ReadByte();
                     string key;
                     string value;
                     while (bytes != 96)
                     {
                         byteline.Add((byte)bytes);
                         bytes = readFile.ReadByte();
-                    }
-                    byteline.Clear();
+                    }                    
                     value = Encoding.UTF8.GetString(byteline.ToArray());
+                    byteline.Clear();
                     bytes = readFile.ReadByte();
                     while (bytes != 10)
                     {
@@ -132,15 +141,20 @@ namespace Kontur.LogPacker
                     byteline.Clear();
                 }
 
-                while ((bytes = readFile.ReadByte()) != -1)
+                readFile.Position = 0;
+                //read file without dictionary
+                pos = readFile.Length - 7 - pos;
+                while (readFile.Position < pos)
                 {
+                    bytes = readFile.ReadByte();
+                    if (readFile.Position >= pos) { break; }
                     if (byteline.Count == 0 && bytes != 33)
                     {
                         byteline.Add((byte)bytes);
                         bytes = readFile.ReadByte();
                         while ((bytes) != 10 && (bytes) != 13)
                         {
-                            if (bytes == -1) { break; }
+                            if (readFile.Position >= pos) { break; }
                             byteline.Add((byte)bytes);
                             bytes = readFile.ReadByte();
                         }
@@ -160,7 +174,7 @@ namespace Kontur.LogPacker
                     else
                     {
                         bytes = readFile.ReadByte();                        
-                        while ((bytes != 10) && (bytes != -1))
+                        while ((bytes != 10) && (readFile.Position < pos))
                         {
                             byteline.Add((byte)bytes);
                             bytes = readFile.ReadByte();
@@ -170,11 +184,12 @@ namespace Kontur.LogPacker
                         {
                             writeFile.WriteByte(bytesForWriting[i]);
                         }
-                        if (bytes == -1) { break; }
+                        if (readFile.Position >= pos) { break; }
                         writeFile.WriteByte(10);
                         byteline.Clear();
                     }
                 }
+                logsLvl.Clear();
             }
             File.Delete(Path.GetFullPath("123.txt"));
         }
