@@ -8,7 +8,7 @@ namespace Kontur.LogPacker
     public static class MyCompressor
     {
         public static string CreateHelpFile(string inputFile)
-        {            
+        {
             int bytes;
             List<byte> byteline = new List<byte>();
             byte[] bytesForWriting;
@@ -18,11 +18,11 @@ namespace Kontur.LogPacker
             Dictionary<string, string> logsLvl = new Dictionary<string, string>();
             using (FileStream readFile = new FileStream(inputFile, FileMode.Open))
             using (FileStream writeFile = new FileStream(Path.GetFullPath("123.txt"), FileMode.Create))
-            {                
+            {
                 while (readFile.Position < readFile.Length)
                 {
                     bytes = readFile.ReadByte();
-                    if ((bytes >= 48) && (bytes <= 57) && (byteline.Count == 0))
+                    if (Helper.IsByteDigit((byte)bytes) && (byteline.Count == 0))
                     {
                         while ((bytes != 10) && (bytes != -1))
                         {
@@ -62,10 +62,10 @@ namespace Kontur.LogPacker
                         writeFile.WriteByte(10);
                         byteline.Clear();
                     }
-                }                
+                }
                 ulong bytesCount = 0;
-                string pair = "";                
-                foreach(var curr in logsLvl)
+                string pair = "";
+                foreach (var curr in logsLvl)
                 {
                     pair = curr.Key + '`' + curr.Value;
                     bytesForWriting = Encoding.UTF8.GetBytes(pair);
@@ -80,23 +80,22 @@ namespace Kontur.LogPacker
                 bytesForWriting = BitConverter.GetBytes(bytesCount);
                 for (int i = 0; i < bytesForWriting.Length; i++)
                 {
-                    writeFile.WriteByte(bytesForWriting[i]);                    
+                    writeFile.WriteByte(bytesForWriting[i]);
                 }
 
             }
-            
+
             inputFile = Path.GetFullPath("123.txt");
             return inputFile;
         }
 
-        public static void ReturnOriginalLog(string outputFile)
+        public static void WriteOriginalLog(string outputFile)
         {
             int bytes;
             long pos = 0;
             ulong currentId = 0;
             List<byte> byteline = new List<byte>();
             byte[] bytesForWriting;
-            bool isItFirstDate = true;
             Dictionary<string, string> logsLvl = new Dictionary<string, string>();
             DateTime dateTime = new DateTime();
             using (FileStream readFile = new FileStream(Path.GetFullPath("123.txt"), FileMode.Open))
@@ -104,14 +103,14 @@ namespace Kontur.LogPacker
             {
                 //create dictionary
                 readFile.Position = readFile.Length - 8;
-                
+
                 //how many bytes is dictionary
                 for (int i = 0; i < 8; i++)
                 {
                     bytes = readFile.ReadByte();
                     byteline.Add((byte)bytes);
                 }
-                
+
                 pos = BitConverter.ToInt64(byteline.ToArray());
                 byteline.Clear();
                 readFile.Position = readFile.Length - 8 - pos;
@@ -127,7 +126,7 @@ namespace Kontur.LogPacker
                     {
                         byteline.Add((byte)bytes);
                         bytes = readFile.ReadByte();
-                    }                    
+                    }
                     value = Encoding.UTF8.GetString(byteline.ToArray());
                     byteline.Clear();
                     bytes = readFile.ReadByte();
@@ -173,7 +172,7 @@ namespace Kontur.LogPacker
                     }
                     else
                     {
-                        bytes = readFile.ReadByte();                        
+                        bytes = readFile.ReadByte();
                         while ((bytes != 10) && (readFile.Position < pos))
                         {
                             byteline.Add((byte)bytes);

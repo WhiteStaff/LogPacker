@@ -20,12 +20,12 @@ namespace Kontur.LogPacker
             string changedDate = "";
             if (!isDateFirstinput)
             {
-                changedDate = DateDifference(DateTime.ParseExact(PartOfString(line, 0, 23), "yyyy-MM-dd HH:mm:ss,fff", null), inputDateTime);
-                outputDateTime = DateTime.ParseExact(Helper.PartOfString(line, 0, 23), "yyyy-MM-dd HH:mm:ss,fff", null);
+                changedDate = DateDifference(DateTime.ParseExact(line.Substring(0, 23), "yyyy-MM-dd HH:mm:ss,fff", null).Subtract(inputDateTime));
+                outputDateTime = DateTime.ParseExact(line.Substring(0, 23), "yyyy-MM-dd HH:mm:ss,fff", null);
             }
             else
             {
-                outputDateTime = DateTime.ParseExact(Helper.PartOfString(line, 0, 23), "yyyy-MM-dd HH:mm:ss,fff", null);                                
+                outputDateTime = DateTime.ParseExact(line.Substring(0, 23), "yyyy-MM-dd HH:mm:ss,fff", null);
             }
             line = line.Remove(0, 24);
 
@@ -86,7 +86,7 @@ namespace Kontur.LogPacker
                 return false;
             }//id must be greater than prev id
 
-            
+
             //add correct string
 
             line = line.Remove(0, pos);
@@ -138,7 +138,7 @@ namespace Kontur.LogPacker
             {
                 pos++;
             }
-            
+
             //check dictionary
             if (!lvlDict.TryGetValue(newline, out string dictValue))
             {
@@ -147,7 +147,7 @@ namespace Kontur.LogPacker
             }
 
             line = line.Remove(0, pos);
-            if ((line.Length < 1) || (line[0] == ' '))
+            if (line.Length < 1)
             {
                 outputDateTime = inputDateTime;
                 outputID = inputID;
@@ -155,33 +155,19 @@ namespace Kontur.LogPacker
                 return false;
             }
 
-            newline = changedDate + " " + (outputID-inputID).ToString() + dictValue + " " + line;
+            newline = changedDate + " " + (outputID - inputID).ToString() + dictValue + " " + line;
             isDateFirstoutput = false;
             return true;
         }
 
-        private static string PartOfString(string source, int startindex, int count)
+        private static string DateDifference(TimeSpan diff)
         {
-            if (source.Length < startindex + count - 1) { return "Error"; }
-            else
-            {
-                string result = "";
-                for (int i = startindex; i < startindex + count; i++)
-                {
-                    result += source[i];
-                }
-                return result;
-            }
 
-        }
-
-        private static string DateDifference(DateTime inputDateTime, DateTime outputDateTime)
-        {
-            TimeSpan diff = inputDateTime - outputDateTime;
-            int days, min, ms;
-            days = (int)Math.Floor(diff.TotalDays);
-            min = diff.Hours * 24 + diff.Minutes;
-            ms = diff.Seconds * 1000 + diff.Milliseconds;
+            string days = ((int)Math.Floor(diff.TotalDays)).ToString();
+            if (days == "0") { days = ""; }
+            string min = (diff.Hours * 24 + diff.Minutes).ToString();
+            if (min == "0") { min = ""; }
+            int ms = diff.Seconds * 1000 + diff.Milliseconds;
             string result = days + " " + min + " " + ms;
             return result;
         }
@@ -190,10 +176,10 @@ namespace Kontur.LogPacker
         {
             int counter = 0;
             int i = 0;
-            string day = "", min = "", ms = "";
+            string day = "", min = "", ms = "";            
             while (counter < 3)
             {
-                if ((counter == 0) && (line[i] != ' ' ))
+                if ((counter == 0) && (line[i] != ' '))
                 {
                     day += line[i];
                     i++;
@@ -213,15 +199,14 @@ namespace Kontur.LogPacker
                     counter++;
                     i++;
                 }
-                        
+
             }
-            int.Parse(day);
-            int.Parse(min);
-            int.Parse(ms);
+            if (day == "") { day = "0"; }
+            if (min == "") { min = "0"; }
             position = i;
             DateTime curr = new DateTime();
-            
-            TimeSpan timeSpan = new TimeSpan(int.Parse(day), int.Parse(min) / 60, int.Parse(min) - (int.Parse(min) / 60) * 60, int.Parse(ms)/1000, int.Parse(ms) - (int.Parse(ms) / 1000) * 1000);
+
+            TimeSpan timeSpan = new TimeSpan(int.Parse(day), int.Parse(min) / 60, int.Parse(min) - (int.Parse(min) / 60) * 60, int.Parse(ms) / 1000, int.Parse(ms) - (int.Parse(ms) / 1000) * 1000);
             curr = dateTime.Add(timeSpan);
             dateTime1 = curr;
             return curr.ToString("yyyy-MM-dd HH:mm:ss,fff");
@@ -239,7 +224,7 @@ namespace Kontur.LogPacker
                     position = i;
                     break;
                 }
-                newline += line[i];                  
+                newline += line[i];
             }
 
             outputId = ulong.Parse(newline) + inputId;
@@ -247,7 +232,7 @@ namespace Kontur.LogPacker
 
             if (newline.Length < 6)
             {
-                newline = newline.PadRight(6);                
+                newline = newline.PadRight(6);
             }
 
             return newline;
@@ -278,140 +263,54 @@ namespace Kontur.LogPacker
             return newline;
         }
 
-        /*private static string ChangeStringToCompact(string line, DateTime inputDateTime, ulong inputID, Dictionary<string, string> lvlDict, 
-            out DateTime outputDateTime, out ulong outputID)
-        {            
-            string myID = "";
-            ulong outIdDiff = 0;            
-            int pos = 0;
-            string strToDict = "";
-            string ChangeId;
-            string newline;
-            int lineLength;
-            string dictValue;            
-
-            //parse Data            
-            string changedDate = DateDifference(DateTime.ParseExact(PartOfString(line, 0, 23), "yyyy-MM-dd HH:mm:ss,fff", null), inputDateTime);
-            outputDateTime = DateTime.ParseExact(Helper.PartOfString(line, 0, 23), "yyyy-MM-dd HH:mm:ss,fff", null);
-            line = line.Remove(0, 24);
-            
-            if (line.Length > 20) { lineLength = 20; } else { lineLength = line.Length; }
-
-            myID += line[0];
-            //parse ID
-            for (int i = 1; i < lineLength; i++)
-            {
-                myID += line[i];
-                if ((line[i] == ' ') && (line[i - 1] != ' '))
-                {
-                    pos = i;
-                    break;
-                }
-            }
-            ulong.TryParse(myID, out outIdDiff);           
-
-            //set new id
-            outputID = outIdDiff;
-            outIdDiff = outIdDiff - inputID;
-            ChangeId = outIdDiff.ToString();
-
-            if (pos < 6)
-            {
-                pos = 6;
-            }            
-            line = line.Remove(0, pos);            
-
-            line = line.Remove(0, 1);            
-
-            //check is line correct
-            if (line[0] == ' ')
-            {
-                outputDateTime = inputDateTime;
-                outputID = inputID;
-                return null;
-            }
-            else
-            {
-                strToDict += line[0];
-            }
-
-            //parse loglvl
-            for (int i = 1; i < line.Length; i++)
-            {
-                strToDict += line[i];
-                if ((line[i] == ' ') && (line[i - 1] != ' '))
-                {
-                    pos = i;
-                    break;
-                }
-            }
-            
-            if (pos < 5)
-            {
-                for (int i = pos + 1; i < 6; i++)
-                {                    
-                    strToDict += line[i];
-                }
-                pos = 5;
-            }
-
-            if (!lvlDict.TryGetValue(strToDict, out dictValue))
-            {
-                lvlDict.Add(strToDict, ("@" + lvlDict.Count));
-                dictValue = "@" + (lvlDict.Count - 1);
-            }            
-            line = line.Remove(0, pos);            
-
-            //create newline
-            newline = changedDate + " " + ChangeId + dictValue + line;           
-
-            return newline;
-
-        }*/
-
         private static string ChangeStringFromCompact(string line, DateTime inputDateTime, ulong inputId, Dictionary<string, string> lvlDict,
             out DateTime outputDateTime, out ulong outputId)
         {
-            string date, id, logLvl;            
+            string date, id, logLvl;
             date = ReturnDateFromCompact(line, inputDateTime, out int pos, out inputDateTime);
             line = line.Remove(0, pos);
             outputDateTime = inputDateTime;
-            
+
             id = ReturnIdFromCompact(line, inputId, out pos, out inputId);
             outputId = inputId;
             line = line.Remove(0, pos);
-                        
+
             logLvl = ReturnLogLvlFromCompact(line, lvlDict, out pos);
             line = line.Remove(0, pos + 1);
-            
+
             return date + " " + id + " " + logLvl + " " + line;
         }
 
         private static ulong ReadFirstId(string line)
         {
-            string newline = line[0].ToString();            
+            string newline = line[0].ToString();
             for (int i = 1; i < line.Length; i++)
             {
                 if ((line[i] == ' ') && (line[i - 1] != ' '))
-                {                    
+                {
                     break;
                 }
                 newline += line[i];
             }
-            
+
             return ulong.Parse(newline);
+        }
+
+        public static bool IsByteDigit(byte bytes)
+        {
+            return ((bytes >= 48) && (bytes <= 57));
         }
 
         public static byte[] CreateOptimalByteLine(List<byte> byteList, DateTime inputDateTime, ulong currId, Dictionary<string, string> loglvl, bool isItFirstDateInput,
             out DateTime outputDateTime, out ulong outID, out bool isItFirstDateOutput)
         {
             string newline;
-            
+
             string line = System.Text.Encoding.UTF8.GetString(byteList.ToArray());
             if (IsBeginLineCorrect(line))
             {
                 if (!isItFirstDateInput) //TODO: use flags
-                {                    
+                {
                     if (ChangeStringToCompact(line, inputDateTime, currId, loglvl, isItFirstDateInput, out outputDateTime, out outID, out isItFirstDateOutput, out newline))
                     {
                         return Encoding.UTF8.GetBytes(newline);
@@ -429,7 +328,7 @@ namespace Kontur.LogPacker
                 {
                     ChangeStringToCompact(line, inputDateTime, currId, loglvl, isItFirstDateInput, out outputDateTime, out outID, out isItFirstDateOutput, out newline);
                     return byteList.ToArray();
-               }                
+                }
             }
             else
             {
@@ -445,21 +344,21 @@ namespace Kontur.LogPacker
             out DateTime outputDateTime, out ulong outputId)
         {
             string newline;
-            string line = Encoding.UTF8.GetString(byteList.ToArray());            
-                if (inputDateTime > DateTime.MinValue)
-                {
+            string line = Encoding.UTF8.GetString(byteList.ToArray());
+            if (inputDateTime > DateTime.MinValue)
+            {
                 //add work with id and log lvl
-                    newline = ChangeStringFromCompact(line, inputDateTime, inputId, logsLvl, out outputDateTime, out outputId);                    
-                }
-                else
-                {
-                    outputDateTime = DateTime.ParseExact(PartOfString(line, 0, 23), "yyyy-MM-dd HH:mm:ss,fff", null);
-                    outputId = ReadFirstId(line.Remove(0, 24));
-                    newline = line;
-                }  
+                newline = ChangeStringFromCompact(line, inputDateTime, inputId, logsLvl, out outputDateTime, out outputId);
+            }
+            else
+            {
+                outputDateTime = DateTime.ParseExact(line.Substring(0, 23), "yyyy-MM-dd HH:mm:ss,fff", null);
+                outputId = ReadFirstId(line.Remove(0, 24));
+                newline = line;
+            }
             return Encoding.UTF8.GetBytes(newline);
 
         }
-                
+
     }
 }
