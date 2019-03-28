@@ -72,11 +72,7 @@ namespace Kontur.LogPacker
                 return false;
             }//if id is incorrect
 
-            if (isDateFirstinput)
-            {
-                isDateFirstoutput = false;
-                return false;
-            }
+            
 
             if (outputID < inputID)
             {
@@ -98,6 +94,8 @@ namespace Kontur.LogPacker
                 isDateFirstoutput = isDateFirstinput;
                 return false;
             }//line[0] can't be ' '
+
+            
 
             pos = 0;
             newline = line[0].ToString();
@@ -153,6 +151,12 @@ namespace Kontur.LogPacker
                 outputID = inputID;
                 isDateFirstoutput = isDateFirstinput;
                 return false;
+            }
+
+            if (isDateFirstinput)
+            {
+                isDateFirstoutput = false;
+                return true;
             }
 
             newline = changedDate + " " + (outputID - inputID).ToString() + dictValue + " " + line;
@@ -304,13 +308,12 @@ namespace Kontur.LogPacker
         public static byte[] CreateOptimalByteLine(List<byte> byteList, DateTime inputDateTime, ulong currId, Dictionary<string, string> loglvl, bool isItFirstDateInput,
             out DateTime outputDateTime, out ulong outID, out bool isItFirstDateOutput)
         {
-            string newline;
-
+            string newline;            
             string line = System.Text.Encoding.UTF8.GetString(byteList.ToArray());
             if (IsBeginLineCorrect(line))
             {
-                if (!isItFirstDateInput) //TODO: use flags
-                {
+                if (!isItFirstDateInput)
+                {                    
                     if (ChangeStringToCompact(line, inputDateTime, currId, loglvl, isItFirstDateInput, out outputDateTime, out outID, out isItFirstDateOutput, out newline))
                     {
                         return Encoding.UTF8.GetBytes(newline);
@@ -326,8 +329,20 @@ namespace Kontur.LogPacker
                 }
                 else
                 {
-                    ChangeStringToCompact(line, inputDateTime, currId, loglvl, isItFirstDateInput, out outputDateTime, out outID, out isItFirstDateOutput, out newline);
-                    return byteList.ToArray();
+                    if (ChangeStringToCompact(line, inputDateTime, currId, loglvl, isItFirstDateInput, out outputDateTime, out outID, out isItFirstDateOutput, out newline))
+                    {
+                        return byteList.ToArray();
+                    }
+                    else
+                    {
+                        outputDateTime = inputDateTime;
+                        outID = currId;
+                        isItFirstDateOutput = isItFirstDateInput;
+                        byteList.Insert(0, 33);
+                        return byteList.ToArray();
+                    }
+                    
+                    
                 }
             }
             else
