@@ -17,15 +17,33 @@ namespace Kontur.LogPacker
         private static bool ChangeStringToCompact(string line, DateTime inputDateTime, ulong inputID, Dictionary<string, string> lvlDict, bool isDateFirstinput,
             out DateTime outputDateTime, out ulong outputID, out bool isDateFirstoutput, out string newline)
         {
-            string changedDate = "";
+            string changedDate = "";            
+            if (!DateTime.TryParseExact(line.Substring(0, 23), "yyyy-MM-dd HH:mm:ss,fff", null, System.Globalization.DateTimeStyles.None, out DateTime currDateTime))
+            {
+                outputDateTime = inputDateTime;
+                outputID = inputID;
+                isDateFirstoutput = isDateFirstinput;
+                newline = line;
+                return false;
+            }
+
+            if (currDateTime < inputDateTime)
+            {
+                outputDateTime = inputDateTime;
+                outputID = inputID;
+                isDateFirstoutput = isDateFirstinput;
+                newline = line;
+                return false;
+            }
+
             if (!isDateFirstinput)
             {
-                changedDate = DateDifference(DateTime.ParseExact(line.Substring(0, 23), "yyyy-MM-dd HH:mm:ss,fff", null).Subtract(inputDateTime));
-                outputDateTime = DateTime.ParseExact(line.Substring(0, 23), "yyyy-MM-dd HH:mm:ss,fff", null);
+                changedDate = DateDifference(currDateTime.Subtract(inputDateTime));
+                outputDateTime = currDateTime;
             }
             else
             {
-                outputDateTime = DateTime.ParseExact(line.Substring(0, 23), "yyyy-MM-dd HH:mm:ss,fff", null);
+                outputDateTime = currDateTime;
             }
             line = line.Remove(0, 24);
 

@@ -24,20 +24,37 @@ namespace Kontur.LogPacker
                     bytes = readFile.ReadByte();
                     if (Helper.IsByteDigit((byte)bytes) && (byteline.Count == 0))
                     {
-                        while ((bytes != 10) && (bytes != -1))
+                        while ((bytes != 10) && (bytes != -1) && (byteline.Count < 2000))
                         {
                             byteline.Add((byte)bytes);
                             bytes = readFile.ReadByte();
                         }
-                        if (byteline[byteline.Count - 1] == 13)
+                        if (byteline.Count >= 2000)
                         {
-                            byteline.RemoveAt(byteline.Count - 1);
-                            bytes = 13;
+                            writeFile.WriteByte(33);
+                            bytesForWriting = byteline.ToArray();
+                            for (int i = 0; i < bytesForWriting.Length; i++)
+                            {
+                                writeFile.WriteByte(bytesForWriting[i]);
+                            }
+                            while ((bytes != 10) && (bytes != -1))
+                            {
+                                writeFile.WriteByte((byte)bytes);
+                                bytes = readFile.ReadByte();
+                            }
                         }
-                        bytesForWriting = Helper.CreateOptimalByteLine(byteline, dateTime, currentId, logsLvl, isItFirstDate, out dateTime, out currentId, out isItFirstDate);
-                        for (int i = 0; i < bytesForWriting.Length; i++)
+                        else
                         {
-                            writeFile.WriteByte(bytesForWriting[i]);
+                            if (byteline[byteline.Count - 1] == 13)
+                            {
+                                byteline.RemoveAt(byteline.Count - 1);
+                                bytes = 13;
+                            }
+                            bytesForWriting = Helper.CreateOptimalByteLine(byteline, dateTime, currentId, logsLvl, isItFirstDate, out dateTime, out currentId, out isItFirstDate);
+                            for (int i = 0; i < bytesForWriting.Length; i++)
+                            {
+                                writeFile.WriteByte(bytesForWriting[i]);
+                            }
                         }
                         if (bytes == 13) { writeFile.WriteByte(13); }
                         if (bytes == -1) { break; }
@@ -47,17 +64,12 @@ namespace Kontur.LogPacker
                     }
                     else
                     {
+                        writeFile.WriteByte(33);
                         while ((bytes != 10) && (bytes != -1))
                         {
-                            byteline.Add((byte)bytes);
+                            writeFile.WriteByte((byte)bytes);
                             bytes = readFile.ReadByte();
-                        }
-                        byteline.Insert(0, 33);
-                        bytesForWriting = byteline.ToArray();
-                        for (int i = 0; i < bytesForWriting.Length; i++)
-                        {
-                            writeFile.WriteByte(bytesForWriting[i]);
-                        }
+                        }                                                
                         if (bytes == -1) { break; }
                         writeFile.WriteByte(10);
                         byteline.Clear();
@@ -175,14 +187,9 @@ namespace Kontur.LogPacker
                         bytes = readFile.ReadByte();
                         while ((bytes != 10) && (readFile.Position < pos))
                         {
-                            byteline.Add((byte)bytes);
+                            writeFile.WriteByte((byte)bytes);
                             bytes = readFile.ReadByte();
-                        }
-                        bytesForWriting = byteline.ToArray();
-                        for (int i = 0; i < bytesForWriting.Length; i++)
-                        {
-                            writeFile.WriteByte(bytesForWriting[i]);
-                        }
+                        }                        
                         if (readFile.Position >= pos) { break; }
                         writeFile.WriteByte(10);
                         byteline.Clear();
